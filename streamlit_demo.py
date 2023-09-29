@@ -186,9 +186,15 @@ def main():
     # Display the map as an image using st.image()
     folium_static(india_map)
 
-    ab = st.text_input("API key?", "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0") # AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0
+    ab = st.selectbox("Want to use your own API Key?", options=["yes","no"],index=None,placeholder="Select yes/no...") # AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0
 
-    
+    if ab=="yes":
+        ab = st.text_input(label="Enter API Key")
+    elif ab=="no":
+        st.write("No Problem!")
+        st.write("Click on submit")
+        ab = st.secrets["Api_key"]
+
 
     if ab and st.button("Submit"):
         st.session_state.ab = ab
