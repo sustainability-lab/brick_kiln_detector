@@ -21,10 +21,12 @@ import matplotlib.pyplot as plt
 
 
 # url = 'https://drive.google.com/uc?id=1DBl_LcIC3-a09bgGqRPAsQsLCbl9ZPJX'
-url = 'https://drive.google.com/uc?id=1PpaFM7tjZQ9LuICfNmITrbbJnq4SFGnK'
-
-output = 'model_vgg_fine_ind_grad.h5'
-gdown.download(url, output, quiet=True)
+@st.cache_resource
+def download_model():
+    url = 'https://drive.google.com/uc?id=1PpaFM7tjZQ9LuICfNmITrbbJnq4SFGnK'
+    output = 'model_vgg_fine_ind_grad.h5'
+    gdown.download(url, output, quiet=True)
+download_model()
 
 @st.cache_resource()
 def load_model():
@@ -194,6 +196,7 @@ def main():
         st.write("No Problem!")
         st.write("Click on submit")
         ab = st.secrets["Api_key"]
+      
 
 
     if ab and st.button("Submit"):
@@ -313,29 +316,29 @@ def main():
         st.write("The number of non-brick kilns in the selected region is: ", count_zeros)
 
         
-        with st.expander("Download Options"):
-            with open('images_kiln.zip', 'rb') as zip_file:
-                zip_data = zip_file.read()
-            st.download_button(
-                label="Download Kiln Images",
-                data=zip_data,
-                file_name='images_kiln.zip',
-                mime="application/zip"
-            )
-            with open('images_no_kiln.zip', 'rb') as zip_file:
-                zip_data = zip_file.read()
-            st.download_button(
-                label="Download Non-Kiln Images",
-                data=zip_data,
-                file_name='images_no_kiln.zip',
-                mime="application/zip"
-            )
-            st.download_button(label =
-                "Download CSV of latitude and longitude of brick kilns",
-                data = csv,
-                file_name = "lat_long.csv",
-                mime = "text/csv"
-                ) 
+        st.markdown("### Download options")
+        with open('images_kiln.zip', 'rb') as zip_file:
+            zip_data = zip_file.read()
+        st.download_button(
+            label="Download Kiln Images",
+            data=zip_data,
+            file_name='images_kiln.zip',
+            mime="application/zip"
+        )
+        with open('images_no_kiln.zip', 'rb') as zip_file:
+            zip_data = zip_file.read()
+        st.download_button(
+            label="Download Non-Kiln Images",
+            data=zip_data,
+            file_name='images_no_kiln.zip',
+            mime="application/zip"
+        )
+        st.download_button(label =
+            "Download CSV of latitude and longitude of brick kilns",
+            data = csv,
+            file_name = "lat_long.csv",
+            mime = "text/csv"
+            ) 
 
         # Cleanup: Remove the temporary directory and zip file
         shutil.rmtree(temp_dir1)
