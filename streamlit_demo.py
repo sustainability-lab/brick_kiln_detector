@@ -12,7 +12,7 @@ import io
 import gdown
 import pandas as pd
 import time
-from stqdm import stqdm
+
 
 import tensorflow as tf
 import matplotlib
