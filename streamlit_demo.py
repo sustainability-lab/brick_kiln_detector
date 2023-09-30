@@ -192,8 +192,8 @@ def main():
     # Display the map as an image using st.image()
     folium_static(india_map)
     
-    # ab = st.secrets["Api_key"]
-    ab = "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0"
+    ab = st.secrets["Api_key"]
+    # ab = "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0"
     
 
 
