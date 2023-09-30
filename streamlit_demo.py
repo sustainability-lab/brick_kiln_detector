@@ -13,6 +13,7 @@ import gdown
 import pandas as pd
 import time
 
+
 import tensorflow as tf
 import matplotlib
 from tensorflow import keras
@@ -21,6 +22,8 @@ import matplotlib.pyplot as plt
 
 
 # url = 'https://drive.google.com/uc?id=1DBl_LcIC3-a09bgGqRPAsQsLCbl9ZPJX'
+if 'clicked' not in st.session_state:
+    st.session_state.clicked = False
 @st.cache_resource
 def download_model():
     url = 'https://drive.google.com/uc?id=1PpaFM7tjZQ9LuICfNmITrbbJnq4SFGnK'
@@ -62,6 +65,7 @@ def create_map():
         attr="Mapbox Satellite",
         name="Mapbox Satellite"
     ).add_to(india_map)
+
 
     return india_map
 
@@ -120,7 +124,6 @@ def save_and_display_gradcam(img_array, heatmap, alpha=0.4):
     superimposed_img = array_to_img(superimposed_img)
 
     return superimposed_img
-    
 
 def main():
 
@@ -144,33 +147,32 @@ def main():
 
     st.header("Instructions")
     st.write("1. Enter the latitude and longitude of the bounding box in the sidebar.\n"
-                 "2. Enter Google Maps API key in the text box below.\n"
-                 "3. Click on submit and wait for the results to load.\n"
-                 "4. Download the images and CSV file using the download buttons below.")
+                 "2. Click on submit and wait for the results to load.\n"
+                 "3. Download the images and CSV file using the download buttons below.")
 
-    st.sidebar.title("Search Location")
-    lat = st.sidebar.number_input("Latitude:", value=20.5937, step=0.000001)
-    lon = st.sidebar.number_input("Longitude:", value=78.9629, step=0.000001)
+    # st.sidebar.title("Search Location")
+    # lat = st.sidebar.number_input("Latitude:", value=20.5937, step=0.000001)
+    # lon = st.sidebar.number_input("Longitude:", value=78.9629, step=0.000001)
 
     india_map = create_map()
-    india_map.location = [lat, lon]
+    # india_map.location = [lat, lon]
 
     # Add marker for selected latitude and longitude
-    folium.Marker(
-        location=[lat, lon],
-        popup=f"Latitude: {lat}, Longitude: {lon}",
-        icon=folium.Icon(color='blue')
-    ).add_to(india_map)
+    # folium.Marker(
+    #     location=[lat, lon],
+    #     popup=f"Latitude: {lat}, Longitude: {lon}",
+    #     icon=folium.Icon(color='blue')
+    # ).add_to(india_map)
 
     # Initialize variables to store user-drawn polygons
     drawn_polygons = []
 
     # Specify the latitude and longitude for the rectangular bounding box
     st.sidebar.title("Bounding Box")
-    box_lat1 = st.sidebar.number_input("Latitude 1:", value=28.74, step=0.000001)
-    box_lon1 = st.sidebar.number_input("Longitude 1:", value=77.60, step=0.000001)
-    box_lat2 = st.sidebar.number_input("Latitude 2:", value=28.90, step=0.000001)
-    box_lon2 = st.sidebar.number_input("Longitude 2:", value=77.90, step=0.000001)
+    box_lat1 = st.sidebar.number_input("Latitude 1:", value=28.74, step=0.01)
+    box_lon1 = st.sidebar.number_input("Longitude 1:", value=77.60, step=0.01)
+    box_lat2 = st.sidebar.number_input("Latitude 2:", value=28.90, step=0.01)
+    box_lon2 = st.sidebar.number_input("Longitude 2:", value=77.90, step=0.01)
 
     # Add the rectangular bounding box to the map
     bounding_box_polygon = folium.Rectangle(
@@ -187,19 +189,13 @@ def main():
     
     # Display the map as an image using st.image()
     folium_static(india_map)
-
-    ab = st.selectbox("Want to use your own API Key?", options=["yes","no"],index=None,placeholder="Select yes/no...") # AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0
-
-    if ab=="yes":
-        ab = st.text_input(label="Enter API Key")
-    elif ab=="no":
-        st.write("No Problem!")
-        st.write("Click on submit")
-        ab = st.secrets["Api_key"]
-      
+    
+    ab = st.secrets["Api_key"]
+    # ab = "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0"
+    st.session_state.clicked = st.button("Submit")
 
 
-    if ab and st.button("Submit"):
+    if ab and st.session_state.clicked:
         st.session_state.ab = ab
         image_array_list = []
         latitudes = []
@@ -213,104 +209,130 @@ def main():
         delta_lon = 0.0023
         latitude = lat_1
         longitude = lon_1
+        nlat=0
+        nlong=0
+        while latitude<=lat_2:
+            nlat+=1
+            latitude+=delta_lat
 
+        while longitude<=lon_2:
+            nlong+=1
+            longitude+=delta_lon
+        latitude=lat_1
+        longitude=lon_1
 
-        with st.spinner('Please wait while we process your request...'):
-            while latitude <= lat_2:
-                while longitude <= lon_2:
-                    image_data = get_static_map_image(latitude, longitude, ab)
-                    image = Image.open(io.BytesIO(image_data))
+        progress_text = 'Please wait while we process your request...'
+        my_bar = st.progress(0, text=progress_text)
+
 
         
-                    # Get the size of the image (width, height)
-                    width, height = image.size
+        while latitude<=lat_2:
+            while longitude<=lon_2:
+                image_data = get_static_map_image(latitude, longitude, ab)
+                image = Image.open(io.BytesIO(image_data))
+
+        
+                # Get the size of the image (width, height)
+                width, height = image.size
         
 
-                    new_height = height - 20
+                new_height = height - 20
         
-                    # Define the cropping box (left, upper, right, lower)
-                    crop_box = (0, 0, width, new_height)
+                # Define the cropping box (left, upper, right, lower)
+                crop_box = (0, 0, width, new_height)
                     
-                    # Crop the image
-                    image = image.crop(crop_box)
+                # Crop the image
+                image = image.crop(crop_box)
 
-                    new_width = 224
-                    new_height = 224
+                new_width = 224
+                new_height = 224
 
-                    # Define the resizing box (left, upper, right, lower)
-                    resize_box = (0, 0, new_width, new_height)
+                # Define the resizing box (left, upper, right, lower)
+                resize_box = (0, 0, new_width, new_height)
 
-                    # Resize the image
-                    image = image.resize((new_width, new_height), Image.LANCZOS)
+                # Resize the image
+                image = image.resize((new_width, new_height), Image.LANCZOS)
 
-                    if image.mode != 'RGB':
-                        image = image.convert('RGB')
+                if image.mode != 'RGB':
+                    image = image.convert('RGB')
 
 
-                    image_np_array = np.array(image)
+                image_np_array = np.array(image)
                     
-                    # image_np_array = np.array(image)
+                # image_np_array = np.array(image)
                     
                     
-                    image_array_list.append(image_np_array)
-                    latitudes.append(latitude)
-                    longitudes.append(longitude)
+                image_array_list.append(image_np_array)
+                latitudes.append(latitude)
+                longitudes.append(longitude)
         
                     
-                    idx += 1
-                    longitude += delta_lon
                     
-                    print(idx)
-                latitude += delta_lat
+                longitude += delta_lon
+                my_bar.progress(idx , text=progress_text)
+                idx+=(3/(4*nlat*nlong))
+        
+                
+                    
+                
+            latitude += delta_lat
+        
             
 
-            images = np.stack(image_array_list, axis=0)
+        images = np.stack(image_array_list, axis=0)
             
 
-            # images = imgs_input_fn(image_array_list)
-            predictions_prob = model.predict(images)
-            predictions = [[1 if element >= 0.5 else 0 for element in sublist] for sublist in predictions_prob]
-
-
-            flat_modified_list = [element for sublist in predictions for element in sublist]
-            indices_of_ones = [index for index, element in enumerate(flat_modified_list) if element == 1]
-            indices_of_zeros = [index for index, element in enumerate(flat_modified_list) if element == 0]
-
-
-            temp_dir1 = tempfile.mkdtemp()  # Create a temporary directory to store the images
-            with zipfile.ZipFile('images_kiln.zip', 'w') as zipf:
-                for i in indices_of_ones:
-                    temp_df = pd.DataFrame({'Latitude': [latitudes[i]], 'Longitude': [longitudes[i]]})
+        # images = imgs_input_fn(image_array_list)
+        predictions_prob = model.predict(images)
+        predictions = [[1 if element >= 0.5 else 0 for element in sublist] for sublist in predictions_prob]
         
-                    # Concatenate the temporary DataFrame with the main DataFrame
-                    df = pd.concat([df, temp_df], ignore_index=True)
+        flat_modified_list = [element for sublist in predictions for element in sublist]
         
-                    image_filename = f'kiln_{latitudes[i]}_{longitudes[i]}.png'
-                    image_path = os.path.join(temp_dir1, image_filename)
+        indices_of_ones = [index for index, element in enumerate(flat_modified_list) if element == 1]
+        indices_of_zeros = [index for index, element in enumerate(flat_modified_list) if element == 0]
 
-                    pil_image = Image.fromarray(image_array_list[i])
+    
 
-                    pil_image.save(image_path, format='PNG')
-                    zipf.write(image_path, arcname=image_filename)
-
-            temp_dir2 = tempfile.mkdtemp()  # Create a temporary directory to store the images
+        temp_dir1 = tempfile.mkdtemp()  # Create a temporary directory to store the images
+        with zipfile.ZipFile('images_kiln.zip', 'w') as zipf:
+            for i in indices_of_ones:
+                temp_df = pd.DataFrame({'Latitude': [latitudes[i]], 'Longitude': [longitudes[i]]})
         
-            with zipfile.ZipFile('images_no_kiln.zip', 'w') as zipf:
-                for i in indices_of_zeros:
-                    image_filename = f'kiln_{latitudes[i]}_{longitudes[i]}.png'
-                    image_path = os.path.join(temp_dir2, image_filename)
-
-                    pil_image = Image.fromarray(image_array_list[i])
-
-                    pil_image.save(image_path, format='PNG')
-                    zipf.write(image_path, arcname=image_filename)
+                # Concatenate the temporary DataFrame with the main DataFrame
+                df = pd.concat([df, temp_df], ignore_index=True)
         
-            csv = df.to_csv(index=False).encode('utf-8')
+                image_filename = f'kiln_{latitudes[i]}_{longitudes[i]}.png'
+                image_path = os.path.join(temp_dir1, image_filename)
 
+                pil_image = Image.fromarray(image_array_list[i])
+
+                pil_image.save(image_path, format='PNG')
+                zipf.write(image_path, arcname=image_filename)
+                
+        
+
+        temp_dir2 = tempfile.mkdtemp()  # Create a temporary directory to store the images
+        
+        with zipfile.ZipFile('images_no_kiln.zip', 'w') as zipf:
+            for i in indices_of_zeros:
+                image_filename = f'kiln_{latitudes[i]}_{longitudes[i]}.png'
+                image_path = os.path.join(temp_dir2, image_filename)
+
+                pil_image = Image.fromarray(image_array_list[i])
+
+                pil_image.save(image_path, format='PNG')
+                zipf.write(image_path, arcname=image_filename)
+                
+        
+        csv = df.to_csv(index=False).encode('utf-8')
+        
              
 
-            count_ones = sum(1 for element in flat_modified_list if element == 1)
-            count_zeros = sum(1 for element in flat_modified_list if element == 0)
+        count_ones = sum(1 for element in flat_modified_list if element == 1)
+        count_zeros = sum(1 for element in flat_modified_list if element == 0)
+        my_bar.progress(0.99 , text=progress_text)
+        time.sleep(1)
+        my_bar.empty()        
 
         st.write("The number of brick kilns in the selected region is: ", count_ones)
         st.write("The number of non-brick kilns in the selected region is: ", count_zeros)
@@ -352,7 +374,7 @@ def main():
         st.write("Let's see how well our model is identifying the pattern of brick kilns in the images.")
         for idx in indices_of_ones:
 
-            st.write("Predicted Label: ",  predictions[idx][0] , " and Predicted Probability: ", predictions_prob[idx][0])
+            st.write("Predicted Probability: ", round(predictions_prob[idx][0],2))
 
             # Load and preprocess the original image
             img_array = images[idx:idx+1]
@@ -387,8 +409,7 @@ def main():
             st.pyplot(fig)
 
 
-    else:
-        st.sidebar.warning("Please enter an API key.")
+    
 
 if __name__ == "__main__":
     main()
