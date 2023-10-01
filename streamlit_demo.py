@@ -183,10 +183,10 @@ def main():
 
     # Specify the latitude and longitude for the rectangular bounding box
     st.sidebar.title("Bounding Box")
-    box_lat1 = st.sidebar.number_input("Latitude 1:", value=28.74, step=0.01,on_change=callback_map)
-    box_lon1 = st.sidebar.number_input("Longitude 1:", value=77.60, step=0.01,on_change=callback_map)
-    box_lat2 = st.sidebar.number_input("Latitude 2:", value=28.90, step=0.01,on_change=callback_map)
-    box_lon2 = st.sidebar.number_input("Longitude 2:", value=77.90, step=0.01,on_change=callback_map)
+    box_lat2 = st.sidebar.number_input("Latitude of Top-Left corner:", value=28.90, step=0.01,on_change=callback_map)
+    box_lon1 = st.sidebar.number_input("Longitude of Top-Left corner:", value=77.60, step=0.01,on_change=callback_map)
+    box_lat1 = st.sidebar.number_input("Latitude of Bottom-Right corner:", value=28.74, step=0.01,on_change=callback_map)
+    box_lon2 = st.sidebar.number_input("Longitude of Bottom-Right corner:", value=77.90, step=0.01,on_change=callback_map)
 
     # Add the rectangular bounding box to the map
     bounding_box_polygon = folium.Rectangle(
