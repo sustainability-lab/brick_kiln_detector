@@ -424,7 +424,7 @@ def main():
 
                 # Display the original image
                 axs[0].imshow(images[idx])
-                axs[0].set_title('Original Image')
+                axs[0].set_title('Original Image',size="xx-large")
 
                 # Preprocess the image for GradCAM
                 img_array = imgs_input_fn(img_array)
@@ -434,12 +434,12 @@ def main():
 
                 # Display the heatmap with a color bar
                 heatmap_plot = axs[1].imshow(heatmap, cmap='jet')
-                axs[1].set_title('Heatmap')
+                axs[1].set_title('Heatmap',size="xx-large")
 
                 # Generate and display the GradCAM superimposed image
                 grad_fig = save_and_display_gradcam(images[idx], heatmap)
                 axs[2].imshow(grad_fig)
-                axs[2].set_title('GradCAM Superimposed')
+                axs[2].set_title('GradCAM Superimposed',size="xx-large")
                 cbar = plt.colorbar(heatmap_plot, ax=axs[2], pad=0.02)  
                 cbar.set_label('Heatmap Intensity')
 
