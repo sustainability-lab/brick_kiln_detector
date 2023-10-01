@@ -199,7 +199,7 @@ def main():
 
     if ab and (st.button("Submit",on_click=callback) or st.session_state.button1):
         @st.cache_resource
-        def done_before(df):
+        def done_before(df,drawn_polygons):
             st.session_state.ab = ab
             image_array_list = []
             latitudes = []
@@ -301,7 +301,7 @@ def main():
             my_bar.empty() 
 
             return indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list
-        indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list=done_before(df) 
+        indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list=done_before(df,drawn_polygons) 
         temp_dir1 = tempfile.mkdtemp()  # Create a temporary directory to store the images
         with zipfile.ZipFile('images_kiln.zip', 'w') as zipf:
             for i in indices_of_ones:
