@@ -29,6 +29,7 @@ if 'zoomed_in' not in st.session_state:
 def callback():
     st.session_state.button1=True
 def callback_map():
+    st.session_state.button1=False
     st.session_state.india_map = create_map(5)
     st.session_state.zoomed_in=True    
 
@@ -203,8 +204,8 @@ def main():
     # Display the map as an image using st.image()
     folium_static(st.session_state.india_map)
     
-    # ab = st.secrets["Api_key"]
-    ab = "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0"
+    ab = st.secrets["Api_key"]
+    # ab = "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0"
     
 
 
