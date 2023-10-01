@@ -192,8 +192,8 @@ def main():
     # Display the map as an image using st.image()
     folium_static(india_map)
     
-    ab = st.secrets["Api_key"]
-    # ab = "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0"
+    # ab = st.secrets["Api_key"]
+    ab = "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0"
     
 
 
@@ -296,12 +296,12 @@ def main():
             indices_of_zeros = [index for index, element in enumerate(flat_modified_list) if element == 0]
 
         
-            my_bar.progress(0.99 , text=progress_text)
-            time.sleep(1)
-            my_bar.empty() 
+            # my_bar.progress(0.99 , text=progress_text)
+            # time.sleep(1)
+            # my_bar.empty() 
 
-            return indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list
-        indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list=done_before(df,drawn_polygons) 
+            return indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list,my_bar
+        indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list,my_bar=done_before(df,drawn_polygons) 
         temp_dir1 = tempfile.mkdtemp()  # Create a temporary directory to store the images
         with zipfile.ZipFile('images_kiln.zip', 'w') as zipf:
             for i in indices_of_ones:
@@ -339,9 +339,9 @@ def main():
 
         count_ones = sum(1 for element in flat_modified_list if element == 1)
         count_zeros = sum(1 for element in flat_modified_list if element == 0)
-        # my_bar.progress(0.99 , text=progress_text)
-        # time.sleep(1)
-        # my_bar.empty()        
+        my_bar.progress(0.99 , text='Please wait while we process your request...')
+        time.sleep(1)
+        my_bar.empty()        
 
         st.write("The number of brick kilns in the selected region is: ", count_ones)
         st.write("The number of non-brick kilns in the selected region is: ", count_zeros)
