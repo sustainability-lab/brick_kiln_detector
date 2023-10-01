@@ -424,7 +424,7 @@ def main():
                 img_array = images[idx:idx+1]
 
                 # Create a figure and axes for the images
-                fig, axs = plt.subplots(1, 3, figsize=(15, 5), gridspec_kw={'width_ratios': [1.2, 1.2, 1.44]})
+                fig, axs = plt.subplots(1, 2, figsize=(10, 5), gridspec_kw={'width_ratios': [1.2, 1.44]})
 
                 # Display the original image
                 axs[0].imshow(images[idx])
@@ -436,17 +436,13 @@ def main():
                 # Generate class activation heatmap
                 heatmap = make_gradcam_heatmap(img_array, model, last_conv_layer_name)
 
-                # Display the heatmap with a color bar
-                heatmap_plot = axs[1].imshow(heatmap, cmap='jet')
-                axs[1].set_title('Heatmap',size="xx-large")
-
                 # Generate and display the GradCAM superimposed image
                 grad_fig = save_and_display_gradcam(images[idx], heatmap)
-                axs[2].imshow(grad_fig)
-                axs[2].set_title('GradCAM Superimposed',size="xx-large")
-                cbar = plt.colorbar(heatmap_plot, ax=axs[2], pad=0.02)  
+                grad_plot = axs[1].imshow(grad_fig, cmap='jet', vmin=0, vmax=1)
+                axs[1].set_title('GradCAM Superimposed',size="xx-large")
+                cbar = plt.colorbar(grad_plot, ax=axs[1], pad=0.02, shrink=0.91)  
                 cbar.set_label('Heatmap Intensity')
-
+                
                 for ax in axs:
                     ax.axis('off')
                 plt.tight_layout()
