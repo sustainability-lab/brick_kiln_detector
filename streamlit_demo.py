@@ -12,7 +12,7 @@ import io
 import gdown
 import pandas as pd
 import time
-
+from folium import plugins
 
 import tensorflow as tf
 import matplotlib
@@ -74,7 +74,7 @@ def create_map(zoom_level):
         attr="Mapbox Satellite",
         name="Mapbox Satellite"
     ).add_to(india_map)
-
+    plugins.MousePosition().add_to(india_map)
 
     return india_map
 
