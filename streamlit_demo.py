@@ -24,8 +24,14 @@ import matplotlib.pyplot as plt
 # url = 'https://drive.google.com/uc?id=1DBl_LcIC3-a09bgGqRPAsQsLCbl9ZPJX'
 if 'button1' not in st.session_state:
     st.session_state.button1=False
+if 'zoomed_in' not in st.session_state:
+    st.session_state.zoomed_in=True
 def callback():
     st.session_state.button1=True
+def callback_map():
+    st.session_state.india_map = create_map(5)
+    st.session_state.zoomed_in=True    
+
 @st.cache_resource
 def download_model():
     url = 'https://drive.google.com/uc?id=1PpaFM7tjZQ9LuICfNmITrbbJnq4SFGnK'
@@ -54,10 +60,10 @@ def get_static_map_image(latitude, longitude, api):
     response = requests.get(base_url, params=params)
     return response.content
 
-def create_map():
+def create_map(zoom_level):
     india_map = folium.Map(
         location=[20.5937, 78.9629],
-        zoom_start=5,
+        zoom_start=zoom_level,
         control_scale=True
     )
 
@@ -70,6 +76,20 @@ def create_map():
 
 
     return india_map
+
+def add_locations(lat,lon,india_map):
+    india_map.location = [lat, lon]
+
+    # Add marker for selected latitude and longitude
+    folium.Marker(
+        location=[lat, lon],
+        popup=f"Latitude: {lat}, Longitude: {lon}",
+        icon=folium.Icon(color='blue')
+    ).add_to(india_map)
+
+def zoom_map(india_map,lat,lon):
+    india_map.location = [lat,lon]
+    india_map.zoom_start=9
 
 def imgs_input_fn(images):
     img_size = (224, 224)
@@ -152,29 +172,20 @@ def main():
                  "2. Click on submit and wait for the results to load.\n"
                  "3. Download the images and CSV file using the download buttons below.")
 
-    # st.sidebar.title("Search Location")
-    # lat = st.sidebar.number_input("Latitude:", value=20.5937, step=0.000001)
-    # lon = st.sidebar.number_input("Longitude:", value=78.9629, step=0.000001)
 
-    india_map = create_map()
-    # india_map.location = [lat, lon]
+    if 'india_map' not in st.session_state:
+        st.session_state.india_map = create_map(5)
 
-    # Add marker for selected latitude and longitude
-    # folium.Marker(
-    #     location=[lat, lon],
-    #     popup=f"Latitude: {lat}, Longitude: {lon}",
-    #     icon=folium.Icon(color='blue')
-    # ).add_to(india_map)
 
     # Initialize variables to store user-drawn polygons
     drawn_polygons = []
 
     # Specify the latitude and longitude for the rectangular bounding box
     st.sidebar.title("Bounding Box")
-    box_lat1 = st.sidebar.number_input("Latitude 1:", value=28.74, step=0.01)
-    box_lon1 = st.sidebar.number_input("Longitude 1:", value=77.60, step=0.01)
-    box_lat2 = st.sidebar.number_input("Latitude 2:", value=28.90, step=0.01)
-    box_lon2 = st.sidebar.number_input("Longitude 2:", value=77.90, step=0.01)
+    box_lat1 = st.sidebar.number_input("Latitude 1:", value=28.74, step=0.01,on_change=callback_map)
+    box_lon1 = st.sidebar.number_input("Longitude 1:", value=77.60, step=0.01,on_change=callback_map)
+    box_lat2 = st.sidebar.number_input("Latitude 2:", value=28.90, step=0.01,on_change=callback_map)
+    box_lon2 = st.sidebar.number_input("Longitude 2:", value=77.90, step=0.01,on_change=callback_map)
 
     # Add the rectangular bounding box to the map
     bounding_box_polygon = folium.Rectangle(
@@ -183,14 +194,14 @@ def main():
         fill=True,
         fill_opacity=0.2,
     )
-    bounding_box_polygon.add_to(india_map)
+    bounding_box_polygon.add_to(st.session_state.india_map)
     drawn_polygons.append(bounding_box_polygon.get_bounds())
 
     df = pd.DataFrame(columns = ['Latitude', 'Longitude'])
 
     
     # Display the map as an image using st.image()
-    folium_static(india_map)
+    folium_static(st.session_state.india_map)
     
     # ab = st.secrets["Api_key"]
     ab = "AIzaSyCBGIlzrt1yWOzXU7L3_2eaSJcxFHiedz0"
@@ -289,6 +300,7 @@ def main():
             # images = imgs_input_fn(image_array_list)
             predictions_prob = model.predict(images)
             predictions = [[1 if element >= 0.5 else 0 for element in sublist] for sublist in predictions_prob]
+        
             
             flat_modified_list = [element for sublist in predictions for element in sublist]
             
@@ -296,9 +308,7 @@ def main():
             indices_of_zeros = [index for index, element in enumerate(flat_modified_list) if element == 0]
 
         
-            # my_bar.progress(0.99 , text=progress_text)
-            # time.sleep(1)
-            # my_bar.empty() 
+            
 
             return indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list,my_bar
         indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list,my_bar=done_before(df,drawn_polygons) 
@@ -348,6 +358,25 @@ def main():
         # return temp_dir1,temp_dir2,images,indices_of_ones,predictions_prob,csv
 
         if count_ones!=0:
+            if st.session_state.zoomed_in:
+                indices_of_ones = np.array(indices_of_ones)
+                latitudes = np.array(latitudes)
+                longitudes = np.array(longitudes)
+                lat_brick_kilns = latitudes[indices_of_ones]
+                lon_brick_kilns = longitudes[indices_of_ones]
+                indices_of_ones = indices_of_ones.tolist()
+                latitudes = latitudes.tolist()
+                longitudes = longitudes.tolist()
+                st.session_state.india_map=create_map(10)
+                bounding_box_polygon.add_to(st.session_state.india_map)
+                for Idx in range(len(lat_brick_kilns)):
+                    lat = lat_brick_kilns[Idx]
+                    lon = lon_brick_kilns[Idx]
+                    add_locations(lat,lon,st.session_state.india_map)
+                st.session_state.zoomed_in = False
+                st.experimental_rerun()
+        
+            # folium_static(india_map)
             st.markdown("### Download options")
             with open('images_kiln.zip', 'rb') as zip_file:
                 zip_data = zip_file.read()
