@@ -14,6 +14,7 @@ import pandas as pd
 import time
 from folium import plugins
 
+
 import tensorflow as tf
 import matplotlib
 from tensorflow import keras
@@ -74,6 +75,7 @@ def create_map(zoom_level):
         attr="Mapbox Satellite",
         name="Mapbox Satellite"
     ).add_to(india_map)
+
     plugins.MousePosition().add_to(india_map)
 
     return india_map
@@ -183,10 +185,11 @@ def main():
 
     # Specify the latitude and longitude for the rectangular bounding box
     st.sidebar.title("Bounding Box")
-    box_lat2 = st.sidebar.number_input("Latitude of Top-Left corner:", value=28.90, step=0.01,on_change=callback_map)
-    box_lon1 = st.sidebar.number_input("Longitude of Top-Left corner:", value=77.60, step=0.01,on_change=callback_map)
-    box_lat1 = st.sidebar.number_input("Latitude of Bottom-Right corner:", value=28.74, step=0.01,on_change=callback_map)
-    box_lon2 = st.sidebar.number_input("Longitude of Bottom-Right corner:", value=77.90, step=0.01,on_change=callback_map)
+    
+    box_lat1 = st.sidebar.number_input("Latitude of Bottom-left corner:", value=28.74, step=0.01,on_change=callback_map)
+    box_lon1 = st.sidebar.number_input("Longitude of Bottom-Left corner:", value=77.60, step=0.01,on_change=callback_map)
+    box_lat2 = st.sidebar.number_input("Latitude of Top-Right corner:", value=28.90, step=0.01,on_change=callback_map)
+    box_lon2 = st.sidebar.number_input("Longitude of Top-Right corner:", value=77.90, step=0.01,on_change=callback_map)
 
     # Add the rectangular bounding box to the map
     bounding_box_polygon = folium.Rectangle(
@@ -292,12 +295,13 @@ def main():
                         
                     
                 latitude += delta_lat
+                longitude = lon_1
             
                 
 
             images = np.stack(image_array_list, axis=0)
                 
-
+           
             # images = imgs_input_fn(image_array_list)
             predictions_prob = model.predict(images)
             predictions = [[1 if element >= 0.5 else 0 for element in sublist] for sublist in predictions_prob]
@@ -356,7 +360,7 @@ def main():
 
         st.write("The number of brick kilns in the selected region is: ", count_ones)
         st.write("The number of non-brick kilns in the selected region is: ", count_zeros)
-        # return temp_dir1,temp_dir2,images,indices_of_ones,predictions_prob,csv
+        i = indices_of_ones[0]
 
         if count_ones!=0:
             if st.session_state.zoomed_in:
