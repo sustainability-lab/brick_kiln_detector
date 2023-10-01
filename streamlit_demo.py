@@ -343,11 +343,11 @@ def main():
         time.sleep(1)
         my_bar.empty()        
 
-
+        st.write("The number of brick kilns in the selected region is: ", count_ones)
+        st.write("The number of non-brick kilns in the selected region is: ", count_zeros)
+        # return temp_dir1,temp_dir2,images,indices_of_ones,predictions_prob,csv
 
         if count_ones!=0:
-            st.write("The number of brick kilns in the selected region is: ", count_ones)
-            st.write("The number of non-brick kilns in the selected region is: ", count_zeros)
             st.markdown("### Download options")
             with open('images_kiln.zip', 'rb') as zip_file:
                 zip_data = zip_file.read()
@@ -418,7 +418,17 @@ def main():
                 plt.tight_layout()
                 st.pyplot(fig)
         else:
-            st.write("There are no Brick kilns detected in this region.")
+            st.markdown("### Download options")
+            with open('images_no_kiln.zip', 'rb') as zip_file:
+                zip_data = zip_file.read()
+            st.download_button(
+                label="Download Non-Kiln Images",
+                data=zip_data,
+                file_name='images_no_kiln.zip',
+                mime="application/zip"
+            )
+            shutil.rmtree(temp_dir2)
+            os.remove('images_no_kiln.zip')
 
 
     
