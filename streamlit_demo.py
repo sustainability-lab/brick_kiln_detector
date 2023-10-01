@@ -343,80 +343,82 @@ def main():
         time.sleep(1)
         my_bar.empty()        
 
-        st.write("The number of brick kilns in the selected region is: ", count_ones)
-        st.write("The number of non-brick kilns in the selected region is: ", count_zeros)
-        # return temp_dir1,temp_dir2,images,indices_of_ones,predictions_prob,csv
 
-        
-        st.markdown("### Download options")
-        with open('images_kiln.zip', 'rb') as zip_file:
-            zip_data = zip_file.read()
-        st.download_button(
-            label="Download Kiln Images",
-            data=zip_data,
-            file_name='images_kiln.zip',
-            mime="application/zip"
-        )
-        with open('images_no_kiln.zip', 'rb') as zip_file:
-            zip_data = zip_file.read()
-        st.download_button(
-            label="Download Non-Kiln Images",
-            data=zip_data,
-            file_name='images_no_kiln.zip',
-            mime="application/zip"
-        )
-        st.download_button(label =
-            "Download CSV of latitude and longitude of brick kilns",
-            data = csv,
-            file_name = "lat_long.csv",
-            mime = "text/csv"
-            ) 
 
-        # Cleanup: Remove the temporary directory and zip file
-        shutil.rmtree(temp_dir1)
-        os.remove('images_kiln.zip')
-        shutil.rmtree(temp_dir2)
-        os.remove('images_no_kiln.zip')
-        
-        
-        ############## GradCAM ##############
-        last_conv_layer_name = "block5_conv3"
-        st.write("Let's see how well our model is identifying the pattern of brick kilns in the images.")
-        for idx in indices_of_ones:
+        if count_ones!=0:
+            st.write("The number of brick kilns in the selected region is: ", count_ones)
+            st.write("The number of non-brick kilns in the selected region is: ", count_zeros)
+            st.markdown("### Download options")
+            with open('images_kiln.zip', 'rb') as zip_file:
+                zip_data = zip_file.read()
+            st.download_button(
+                label="Download Kiln Images",
+                data=zip_data,
+                file_name='images_kiln.zip',
+                mime="application/zip"
+            )
+            with open('images_no_kiln.zip', 'rb') as zip_file:
+                zip_data = zip_file.read()
+            st.download_button(
+                label="Download Non-Kiln Images",
+                data=zip_data,
+                file_name='images_no_kiln.zip',
+                mime="application/zip"
+            )
+            st.download_button(label =
+                "Download CSV of latitude and longitude of brick kilns",
+                data = csv,
+                file_name = "lat_long.csv",
+                mime = "text/csv"
+                ) 
 
-            st.write("Predicted Probability: ", round(predictions_prob[idx][0],2))
-
-            # Load and preprocess the original image
-            img_array = images[idx:idx+1]
-
-            # Create a figure and axes for the images
-            fig, axs = plt.subplots(1, 3, figsize=(15, 5), gridspec_kw={'width_ratios': [1.2, 1.2, 1.44]})
-
-            # Display the original image
-            axs[0].imshow(images[idx])
-            axs[0].set_title('Original Image')
-
-            # Preprocess the image for GradCAM
-            img_array = imgs_input_fn(img_array)
+            # Cleanup: Remove the temporary directory and zip file
+            shutil.rmtree(temp_dir1)
+            os.remove('images_kiln.zip')
+            shutil.rmtree(temp_dir2)
+            os.remove('images_no_kiln.zip')
             
-            # Generate class activation heatmap
-            heatmap = make_gradcam_heatmap(img_array, model, last_conv_layer_name)
+            
+            ############## GradCAM ##############
+            last_conv_layer_name = "block5_conv3"
+            st.write("Let's see how well our model is identifying the pattern of brick kilns in the images.")
+            for idx in indices_of_ones:
 
-            # Display the heatmap with a color bar
-            heatmap_plot = axs[1].imshow(heatmap, cmap='jet')
-            axs[1].set_title('Heatmap')
+                st.write("Predicted Probability: ", round(predictions_prob[idx][0],2))
 
-            # Generate and display the GradCAM superimposed image
-            grad_fig = save_and_display_gradcam(images[idx], heatmap)
-            axs[2].imshow(grad_fig)
-            axs[2].set_title('GradCAM Superimposed')
-            cbar = plt.colorbar(heatmap_plot, ax=axs[2], pad=0.02)  
-            cbar.set_label('Heatmap Intensity')
+                # Load and preprocess the original image
+                img_array = images[idx:idx+1]
 
-            for ax in axs:
-                ax.axis('off')
-            plt.tight_layout()
-            st.pyplot(fig)
+                # Create a figure and axes for the images
+                fig, axs = plt.subplots(1, 3, figsize=(15, 5), gridspec_kw={'width_ratios': [1.2, 1.2, 1.44]})
+
+                # Display the original image
+                axs[0].imshow(images[idx])
+                axs[0].set_title('Original Image')
+
+                # Preprocess the image for GradCAM
+                img_array = imgs_input_fn(img_array)
+                
+                # Generate class activation heatmap
+                heatmap = make_gradcam_heatmap(img_array, model, last_conv_layer_name)
+
+                # Display the heatmap with a color bar
+                heatmap_plot = axs[1].imshow(heatmap, cmap='jet')
+                axs[1].set_title('Heatmap')
+
+                # Generate and display the GradCAM superimposed image
+                grad_fig = save_and_display_gradcam(images[idx], heatmap)
+                axs[2].imshow(grad_fig)
+                axs[2].set_title('GradCAM Superimposed')
+                cbar = plt.colorbar(heatmap_plot, ax=axs[2], pad=0.02)  
+                cbar.set_label('Heatmap Intensity')
+
+                for ax in axs:
+                    ax.axis('off')
+                plt.tight_layout()
+                st.pyplot(fig)
+        else:
+            st.write("There are no Brick kilns detected in this region.")
 
 
     
