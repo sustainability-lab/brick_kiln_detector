@@ -15,6 +15,7 @@ import time
 from folium import plugins
 
 
+
 import tensorflow as tf
 import matplotlib
 from tensorflow import keras
@@ -201,7 +202,7 @@ def main():
     bounding_box_polygon.add_to(st.session_state.india_map)
     drawn_polygons.append(bounding_box_polygon.get_bounds())
 
-    df = pd.DataFrame(columns = ['Latitude', 'Longitude'])
+    df = pd.DataFrame(columns = ['Sr.No','Latitude', 'Longitude','P(Brick kiln)'])
 
     
     # Display the map as an image using st.image()
@@ -224,8 +225,8 @@ def main():
             lon_1 = drawn_polygons[0][0][1]
             lat_2 = drawn_polygons[0][1][0]
             lon_2 = drawn_polygons[0][1][1]
-            delta_lat = 0.138
-            delta_lon = 0.0023
+            delta_lat = 0.138#0.0065*(276/640)
+            delta_lon = 0.0023#0.0065*(256/640)
             latitude = lat_1
             longitude = lon_1
             nlat=0
@@ -253,6 +254,7 @@ def main():
             
                     # Get the size of the image (width, height)
                     width, height = image.size
+                
             
 
                     new_height = height - 20
@@ -306,7 +308,7 @@ def main():
             predictions_prob = model.predict(images)
             predictions = [[1 if element >= 0.5 else 0 for element in sublist] for sublist in predictions_prob]
         
-            
+            prob_flat_list = [element for sublist in predictions_prob for element in sublist]
             flat_modified_list = [element for sublist in predictions for element in sublist]
             
             indices_of_ones = [index for index, element in enumerate(flat_modified_list) if element == 1]
@@ -315,13 +317,15 @@ def main():
         
             
 
-            return indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list,my_bar
-        indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list,my_bar=done_before(df,drawn_polygons) 
+            return indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list,my_bar,prob_flat_list
+        indices_of_ones,latitudes,longitudes,image_array_list,indices_of_zeros,images,predictions_prob,flat_modified_list,my_bar,prob_flat_list=done_before(df,drawn_polygons) 
         temp_dir1 = tempfile.mkdtemp()  # Create a temporary directory to store the images
         with zipfile.ZipFile('images_kiln.zip', 'w') as zipf:
+            s_no =1
             for i in indices_of_ones:
-                temp_df = pd.DataFrame({'Latitude': [latitudes[i]], 'Longitude': [longitudes[i]]})
-            
+                truncated_float = int(prob_flat_list[i] * 100) / 100
+                temp_df = pd.DataFrame({'Sr.No':[s_no],'Latitude': [latitudes[i]], 'Longitude': [longitudes[i]],'P(Brick kiln)':[truncated_float]})
+                s_no+=1
                 # Concatenate the temporary DataFrame with the main DataFrame
                 df = pd.concat([df, temp_df], ignore_index=True)
             
@@ -347,7 +351,7 @@ def main():
                 pil_image.save(image_path, format='PNG')
                 zipf.write(image_path, arcname=image_filename)
                     
-            
+    
         csv = df.to_csv(index=False).encode('utf-8')
             
                 
@@ -372,7 +376,7 @@ def main():
                 indices_of_ones = indices_of_ones.tolist()
                 latitudes = latitudes.tolist()
                 longitudes = longitudes.tolist()
-                st.session_state.india_map=create_map(10)
+                st.session_state.india_map=create_map(11)
                 bounding_box_polygon.add_to(st.session_state.india_map)
                 for Idx in range(len(lat_brick_kilns)):
                     lat = lat_brick_kilns[Idx]
